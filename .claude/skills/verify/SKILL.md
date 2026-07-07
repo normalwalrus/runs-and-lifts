@@ -1,35 +1,32 @@
 ---
 name: verify
-description: Build, launch, and drive this fitness-tracker app end-to-end with headless Chrome to verify changes at the real UI surface.
+description: Build and drive this static fitness-tracker app end-to-end with headless Chrome to verify changes at the real UI surface.
 ---
 
 # Verifying this app
 
-## Build & launch
+Fully client-side Next.js static export (localStorage data, no server, no auth). Deployed to GitHub Pages at https://normalwalrus.github.io/runs-and-lifts/ by `.github/workflows/deploy.yml` on push to main (repo: normalwalrus/runs-and-lifts).
+
+## Build & serve like Pages does
 
 ```bash
-npm run build                       # catches server/client boundary + type errors
-cp data/fitness.db /tmp/fitness.db.bak   # back up before generating test data
-PORT=3199 npm run start              # run in background
+npm run build                        # static export to out/
+mkdir -p /tmp/serve-root && ln -sfn "$PWD/out" /tmp/serve-root/runs-and-lifts
+npx serve /tmp/serve-root -l 3199    # background; mirrors the /runs-and-lifts basePath
 ```
 
-Wait for `curl -s http://localhost:3199/login` → 200. Login password comes from `APP_PASSWORD` in `.env` (default dev value: `changeme`).
+The basePath is `/runs-and-lifts` — always test under that prefix; asset URLs break if you serve `out/` at the root.
 
 ## Drive it
 
-`scripts/e2e.mjs` is a full puppeteer-core suite (login, runs CRUD + live pace preview, workout CRUD with per-set weights, exercise library, PRs, charts, mobile viewport, deletes, logout):
+Use puppeteer-core with system Chrome (`/usr/bin/google-chrome`, `--no-sandbox`). Key flows: run creation with the live pace preview, workout with different weights per set, exercise add/duplicate/blocked-delete, dashboard PRs, charts on /progress, reload persistence, mobile 390px overflow. Start each session with `localStorage.clear()` for a clean fixture; data key is `runs-and-lifts:v1`.
 
-```bash
-SHOTS_DIR=/tmp node scripts/e2e.mjs   # run from repo root so node_modules resolves
-```
+To verify production, point the same script at `BASE_URL=https://normalwalrus.github.io/runs-and-lifts`.
 
-Uses system Chrome at `/usr/bin/google-chrome` with `--no-sandbox`. Exits non-zero on any FAIL; screenshots land in `SHOTS_DIR`.
+## Gotchas
 
-## Gotchas learned the hard way
-
-- **Never restore/replace `data/fitness.db` while the server is running** — better-sqlite3 holds a WAL connection and the old data survives. Kill the server (`pkill -f next-server` — the process is named `next-server`, not `next start`), delete `-wal`/`-shm` files, copy the backup, restart.
-- **React controlled inputs**: `el.value = ""` via evaluate does NOT update React state; typed text appends to the old state. Use the native value setter + `dispatchEvent(new Event("input", {bubbles: true}))` (see `clearAndType` in the script). Triple-click select-all does not work on `<input type=number>` in headless Chrome.
-- `innerText` reflects CSS `text-transform: uppercase` (StatCard labels) — match case-insensitively.
-- A single-data-point line chart renders a dot but zero `path.recharts-curve` elements — create ≥2 runs before asserting on lines.
-- Server actions navigate via the client router, not a full page load — wait on `location.pathname`, not `waitForNavigation`.
-- Restore the DB backup after the run so test data doesn't linger.
+- **React controlled inputs**: setting `.value` directly doesn't update React state; use the native value setter + `dispatchEvent(new Event("input", {bubbles: true}))`. Triple-click select-all doesn't work on number inputs in headless Chrome.
+- `innerText` reflects CSS `text-transform: uppercase` (stat-card labels) — match case-insensitively.
+- A single-data-point line chart renders a dot but no `path.recharts-curve` — create ≥2 entries before asserting on lines.
+- Detail/edit pages use query params (`/workouts/view?id=N`), not path params — static export can't do dynamic routes over user data.
+- `gh run watch <id> --repo normalwalrus/runs-and-lifts` to follow a Pages deploy after pushing.
