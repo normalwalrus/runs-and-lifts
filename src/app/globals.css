@@ -1,26 +1,95 @@
 @import "tailwindcss";
 
+/*
+ * Training-log identity: chalk & iron surfaces, Olympic plate colors as
+ * the only accents — blue (20 kg) = runs, red (25 kg) = lifting,
+ * gold = records. Validated for contrast + CVD on both surfaces.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f4f0; /* chalk */
+  --foreground: #1b1b18; /* ink */
+  --card: #fdfdfb;
+  --hairline: #e0dfd8;
+  --ink-muted: #6b6a64;
+  --run: #1d5fbf;
+  --lift: #c62e2e;
+  --gold: #a87900;
+  /* chart chrome */
+  --chart-grid: #e0dfd8;
+  --chart-axis: #c9c8c0;
+  --chart-muted: #8b8a82;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-hairline: var(--hairline);
+  --color-ink-muted: var(--ink-muted);
+  --color-run: var(--run);
+  --color-lift: var(--lift);
+  --color-gold: var(--gold);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #131316; /* iron */
+    --foreground: #ececea;
+    --card: #1b1b1f;
+    --hairline: #2a2a2e;
+    --ink-muted: #92928c;
+    --run: #5b8fe8;
+    --lift: #e05a52;
+    --gold: #b08000;
+    --chart-grid: #2a2a2e;
+    --chart-axis: #3a3a3f;
+    --chart-muted: #8b8a82;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* every metric wears the chronograph face */
+.num {
+  font-family: var(--font-geist-mono), monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* section labels, set like lap markers */
+.eyebrow {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* signature: the plate disc */
+.plate {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

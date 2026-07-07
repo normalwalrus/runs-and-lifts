@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fitness Tracker
 
-## Getting Started
+Personal web app for tracking runs (distance, pace, time) and weight-lifting workouts (per-set weight × reps), with progress charts and personal records. Single user, password-protected, local SQLite database.
 
-First, run the development server:
+## Stack
+
+Next.js (App Router, TypeScript) · Tailwind CSS · Drizzle ORM + better-sqlite3 · Recharts · jose (session cookie)
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env   # then fill in APP_PASSWORD and SESSION_SECRET
+npm install
+npm run db:push        # create tables in data/fitness.db
+npm run db:seed        # seed common exercises (idempotent)
+npm run dev            # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Generate a session secret with:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Pages
 
-## Learn More
+- `/` — dashboard: PRs, weekly/monthly totals, recent activity
+- `/runs` — run log (pace and speed auto-calculated from distance + time)
+- `/workouts` — lifting sessions with per-set weight × reps
+- `/exercises` — exercise library (add/rename/delete), per-exercise progression
+- `/progress` — pace, distance, and lifting progression charts
 
-To learn more about Next.js, take a look at the following resources:
+## Notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- All data lives in `data/fitness.db` (gitignored). Back it up by copying the file.
+- Weights are kg, distances km. Dates are stored as `YYYY-MM-DD` text.
+- Deleting an exercise that's used in a workout is blocked; delete the workouts first.
