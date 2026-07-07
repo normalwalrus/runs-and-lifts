@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { desc } from "drizzle-orm";
 import { db } from "@/db";
-import { formatDate, formatWeight } from "@/lib/format";
+import { formatDate, formatWeight, volumeQuip } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -13,19 +13,22 @@ export default async function WorkoutsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Workouts</h1>
-        <Link
-          href="/workouts/new"
-          className="rounded-lg bg-lift px-4 py-2 font-semibold text-background hover:opacity-90"
-        >
+      <div className="flex items-end justify-between">
+        <div>
+          <div className="eyebrow text-gold">Station work</div>
+          <h1 className="display mt-1 text-5xl uppercase italic leading-none">
+            Workouts
+          </h1>
+          <div className="chevrons mt-3 w-24" aria-hidden />
+        </div>
+        <Link href="/workouts/new" className="cta rounded-md px-4 py-2">
           Log workout
         </Link>
       </div>
 
       {sessions.length === 0 ? (
         <p className="rounded-lg border border-dashed border-hairline p-8 text-center text-ink-muted">
-          No workouts yet. Log your first one!
+          No workouts yet. Station 1 is free. It has always been free.
         </p>
       ) : (
         <ul className="space-y-2">
@@ -49,6 +52,9 @@ export default async function WorkoutsPage() {
                     {session.sessionExercises.length} exercise
                     {session.sessionExercises.length === 1 ? "" : "s"} · {allSets.length}{" "}
                     sets · {formatWeight(volume)} total volume
+                    {volumeQuip(volume) && (
+                      <span className="italic"> ({volumeQuip(volume)})</span>
+                    )}
                   </div>
                 </Link>
               </li>

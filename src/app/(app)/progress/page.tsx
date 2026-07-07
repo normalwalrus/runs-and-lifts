@@ -30,10 +30,16 @@ export default async function ProgressPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Progress</h1>
+      <div>
+        <div className="eyebrow text-gold">Leaderboard of one</div>
+        <h1 className="display mt-1 text-5xl uppercase italic leading-none">
+          Progress
+        </h1>
+        <div className="chevrons mt-3 w-24" aria-hidden />
+      </div>
 
       <section className="space-y-2">
-        <h2 className="font-semibold">Run pace (min/km — lower is faster)</h2>
+        <h2 className="display text-lg">Run pace (min/km — lower is faster)</h2>
         <TrendChart
           metric="pace"
           data={runTrend.map((p) => ({ date: p.date, value: p.paceSecPerKm }))}
@@ -41,7 +47,7 @@ export default async function ProgressPage({
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold">Run distance (km)</h2>
+        <h2 className="display text-lg">Run distance (km)</h2>
         <TrendChart
           metric="distance"
           data={runTrend.map((p) => ({ date: p.date, value: p.distanceKm }))}
@@ -49,7 +55,7 @@ export default async function ProgressPage({
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold">
+        <h2 className="display text-lg">
           Lifting progression{selected ? ` — ${selected.name}` : ""} (top set kg)
         </h2>
         <ExercisePicker options={exerciseOptions} selectedId={selectedId} />

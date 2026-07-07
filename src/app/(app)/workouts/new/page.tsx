@@ -13,7 +13,12 @@ export default async function NewWorkoutPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Log workout</h1>
+      <div>
+        <div className="eyebrow text-gold">Next station</div>
+        <h1 className="display mt-1 text-4xl uppercase italic leading-none">
+          Log workout
+        </h1>
+      </div>
       <WorkoutForm
         sessionId={null}
         exerciseOptions={exerciseOptions}

@@ -16,19 +16,20 @@ export default async function RunsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Runs</h1>
-        <Link
-          href="/runs/new"
-          className="rounded-lg bg-run px-4 py-2 font-semibold text-background hover:opacity-90"
-        >
+      <div className="flex items-end justify-between">
+        <div>
+          <div className="eyebrow text-gold">The engine room</div>
+          <h1 className="display mt-1 text-5xl uppercase italic leading-none">Runs</h1>
+          <div className="chevrons mt-3 w-24" aria-hidden />
+        </div>
+        <Link href="/runs/new" className="cta rounded-md px-4 py-2">
           Log run
         </Link>
       </div>
 
       {allRuns.length === 0 ? (
         <p className="rounded-lg border border-dashed border-hairline p-8 text-center text-ink-muted">
-          No runs yet. Log your first one!
+          No runs yet. The start line is patient. You shouldn&apos;t be.
         </p>
       ) : (
         <ul className="space-y-2">
@@ -63,7 +64,7 @@ export default async function RunsPage() {
                   </Link>
                   <DeleteButton
                     action={deleteRun.bind(null, run.id)}
-                    confirmMessage="Delete this run?"
+                    confirmMessage="Delete this run? The official result will read DNS: Did Not Sweat."
                   />
                 </div>
               </div>

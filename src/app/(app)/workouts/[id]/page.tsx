@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { asc } from "drizzle-orm";
 import { db } from "@/db";
-import { formatDate, formatWeight } from "@/lib/format";
+import { formatDate, formatWeight, volumeQuip } from "@/lib/format";
 import DeleteButton from "@/components/DeleteButton";
 import { deleteWorkout } from "../actions";
 
@@ -33,9 +33,14 @@ export default async function WorkoutDetailPage({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold">{session.name ?? "Workout"}</h1>
+          <h1 className="display text-4xl uppercase italic leading-none">
+            {session.name ?? "Workout"}
+          </h1>
           <p className="num text-sm text-ink-muted">
             {formatDate(session.date)} · {formatWeight(volume)} total volume
+            {volumeQuip(volume) && (
+              <span className="italic"> ({volumeQuip(volume)})</span>
+            )}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -47,7 +52,7 @@ export default async function WorkoutDetailPage({
           </Link>
           <DeleteButton
             action={deleteWorkout.bind(null, session.id)}
-            confirmMessage="Delete this workout and all its sets?"
+            confirmMessage="Delete this workout and all its sets? The stewards will strike it from the record."
           />
         </div>
       </div>
@@ -72,10 +77,10 @@ export default async function WorkoutDetailPage({
             </Link>
             <table className="mt-2 w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-ink-muted">
-                  <th className="py-1 font-medium">Set</th>
-                  <th className="py-1 font-medium">Weight</th>
-                  <th className="py-1 font-medium">Reps</th>
+                <tr className="text-left">
+                  <th className="eyebrow py-1">Set</th>
+                  <th className="eyebrow py-1">Weight</th>
+                  <th className="eyebrow py-1">Reps</th>
                 </tr>
               </thead>
               <tbody>

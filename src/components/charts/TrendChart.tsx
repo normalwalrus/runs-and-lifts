@@ -54,7 +54,7 @@ export default function TrendChart({
   if (data.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-hairline text-sm text-ink-muted">
-        No data yet
+        No data yet — the gun hasn&apos;t gone off
       </div>
     );
   }

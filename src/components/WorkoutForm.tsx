@@ -248,6 +248,7 @@ export default function WorkoutForm({
           rows={2}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
+          placeholder="felt strong · blamed the pre-workout"
           className="w-full rounded-lg border border-hairline p-3 focus:border-foreground focus:outline-none"
         />
       </div>
@@ -257,7 +258,7 @@ export default function WorkoutForm({
       <button
         type="submit"
         disabled={pending}
-        className="h-12 w-full rounded-lg bg-lift font-semibold text-background hover:opacity-90 disabled:opacity-50"
+        className="cta h-12 w-full rounded-md disabled:opacity-50"
       >
         {pending ? "Saving…" : submitLabel}
       </button>

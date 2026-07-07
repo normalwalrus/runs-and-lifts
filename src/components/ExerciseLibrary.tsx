@@ -43,7 +43,7 @@ function ExerciseRow({ exercise }: { exercise: ExerciseWithUsage }) {
           <button
             type="submit"
             disabled={renaming}
-            className="rounded-lg bg-foreground text-background px-3 py-2 text-sm font-semibold  disabled:opacity-50"
+            className="cta rounded-md px-3 py-2 text-sm disabled:opacity-50"
           >
             Save
           </button>
@@ -80,7 +80,12 @@ function ExerciseRow({ exercise }: { exercise: ExerciseWithUsage }) {
             <form
               action={deleteAction}
               onSubmit={(e) => {
-                if (!window.confirm(`Delete "${exercise.name}"?`)) e.preventDefault();
+                if (
+                  !window.confirm(
+                    `Delete "${exercise.name}"? It will be retired from the course.`
+                  )
+                )
+                  e.preventDefault();
               }}
             >
               <button
@@ -112,13 +117,13 @@ export default function ExerciseLibrary({ items }: { items: ExerciseWithUsage[] 
         <input
           name="name"
           required
-          placeholder="New exercise name"
+          placeholder="Add to the arsenal…"
           className={inputCls}
         />
         <button
           type="submit"
           disabled={adding}
-          className="shrink-0 rounded-lg bg-foreground text-background px-4 py-2 font-semibold  hover:opacity-90 disabled:opacity-50"
+          className="cta shrink-0 rounded-md px-4 py-2 disabled:opacity-50"
         >
           Add
         </button>

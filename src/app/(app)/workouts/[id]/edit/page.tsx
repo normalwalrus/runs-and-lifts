@@ -30,7 +30,12 @@ export default async function EditWorkoutPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Edit workout</h1>
+      <div>
+        <div className="eyebrow text-gold">Stewards&apos; inquiry</div>
+        <h1 className="display mt-1 text-4xl uppercase italic leading-none">
+          Edit workout
+        </h1>
+      </div>
       <WorkoutForm
         sessionId={session.id}
         exerciseOptions={exerciseOptions}
