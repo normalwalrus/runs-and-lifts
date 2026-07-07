@@ -1,30 +1,26 @@
 "use client";
 
 export default function DeleteButton({
-  action,
+  onDelete,
   confirmMessage,
   className,
 }: {
-  action: () => Promise<void>;
+  onDelete: () => void;
   confirmMessage: string;
   className?: string;
 }) {
   return (
-    <form
-      action={action}
-      onSubmit={(e) => {
-        if (!window.confirm(confirmMessage)) e.preventDefault();
+    <button
+      type="button"
+      onClick={() => {
+        if (window.confirm(confirmMessage)) onDelete();
       }}
+      className={
+        className ??
+        "rounded-lg px-3 py-2 text-sm font-medium text-lift hover:bg-lift/10"
+      }
     >
-      <button
-        type="submit"
-        className={
-          className ??
-          "rounded-lg px-3 py-2 text-sm font-medium text-lift hover:bg-lift/10"
-        }
-      >
-        Delete
-      </button>
-    </form>
+      Delete
+    </button>
   );
 }

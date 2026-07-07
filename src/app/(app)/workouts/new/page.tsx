@@ -1,21 +1,19 @@
-import { asc } from "drizzle-orm";
-import { db } from "@/db";
-import { exercises } from "@/db/schema";
+"use client";
+
+import { useStore } from "@/lib/store";
 import WorkoutForm from "@/components/WorkoutForm";
 
-export const dynamic = "force-dynamic";
-
-export default async function NewWorkoutPage() {
-  const exerciseOptions = await db
-    .select({ id: exercises.id, name: exercises.name })
-    .from(exercises)
-    .orderBy(asc(exercises.name));
+export default function NewWorkoutPage() {
+  const store = useStore();
+  const exerciseOptions = [...store.exercises].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
 
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Log workout</h1>
       <WorkoutForm
-        sessionId={null}
+        workoutId={null}
         exerciseOptions={exerciseOptions}
         submitLabel="Save workout"
       />

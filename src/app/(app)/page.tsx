@@ -1,55 +1,51 @@
+"use client";
+
 import Link from "next/link";
-import { desc } from "drizzle-orm";
-import { db } from "@/db";
-import { runs } from "@/db/schema";
+import { useStore } from "@/lib/store";
 import {
-  getCurrentPeriodTotals,
+  getCurrentMonthTotals,
+  getCurrentWeekTotals,
   getExercisePRs,
   getFastestRun,
   getLongestRun,
 } from "@/lib/stats";
 import { formatDate, formatDuration, formatPace, formatWeight } from "@/lib/format";
 import StatCard from "@/components/StatCard";
+import BackupPanel from "@/components/BackupPanel";
 
-export const dynamic = "force-dynamic";
-
-export default async function DashboardPage() {
-  const fastest = await getFastestRun();
-  const longest = await getLongestRun();
-  const prs = await getExercisePRs();
-  const weekly = await getCurrentPeriodTotals("%Y-%W");
-  const monthly = await getCurrentPeriodTotals("%Y-%m");
-
-  const recentRuns = await db
-    .select()
-    .from(runs)
-    .orderBy(desc(runs.date), desc(runs.createdAt))
-    .limit(3);
-  const recentWorkouts = await db.query.workoutSessions.findMany({
-    orderBy: (ws) => [desc(ws.date), desc(ws.createdAt)],
-    limit: 3,
-    with: { sessionExercises: { with: { exercise: true } } },
-  });
+export default function DashboardPage() {
+  const store = useStore();
+  const fastest = getFastestRun(store.runs);
+  const longest = getLongestRun(store.runs);
+  const prs = getExercisePRs(store);
+  const weekly = getCurrentWeekTotals(store);
+  const monthly = getCurrentMonthTotals(store);
 
   const recent = [
-    ...recentRuns.map((r) => ({
+    ...store.runs.map((r) => ({
       key: `run-${r.id}`,
       href: `/runs`,
       kind: "run" as const,
       date: r.date,
+      id: r.id,
       title: `${r.distanceKm} km run`,
       subtitle: `${formatDuration(r.durationSec)} · ${formatPace(r.durationSec, r.distanceKm)}`,
     })),
-    ...recentWorkouts.map((w) => ({
+    ...store.workouts.map((w) => ({
       key: `workout-${w.id}`,
-      href: `/workouts/${w.id}`,
+      href: `/workouts/view?id=${w.id}`,
       kind: "lift" as const,
       date: w.date,
+      id: w.id,
       title: w.name ?? "Workout",
-      subtitle: w.sessionExercises.map((se) => se.exercise.name).join(", "),
+      subtitle: w.exercises
+        .map(
+          (ex) => store.exercises.find((e) => e.id === ex.exerciseId)?.name ?? "Unknown"
+        )
+        .join(", "),
     })),
   ]
-    .sort((a, b) => b.date.localeCompare(a.date))
+    .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id)
     .slice(0, 5);
 
   return (
@@ -57,9 +53,7 @@ export default async function DashboardPage() {
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
       <section>
-        <h2 className="eyebrow mb-2">
-          Personal records
-        </h2>
+        <h2 className="eyebrow mb-2">Personal records</h2>
         {!fastest && prs.length === 0 ? (
           <p className="rounded-lg border border-dashed border-hairline p-6 text-center text-sm text-ink-muted">
             Log some runs and workouts to see your PRs here.
@@ -96,9 +90,7 @@ export default async function DashboardPage() {
       </section>
 
       <section>
-        <h2 className="eyebrow mb-2">
-          This week / month
-        </h2>
+        <h2 className="eyebrow mb-2">This week / month</h2>
         <div className="grid grid-cols-2 gap-2">
           {[
             { label: "This week", totals: weekly },
@@ -115,9 +107,7 @@ export default async function DashboardPage() {
       </section>
 
       <section>
-        <h2 className="eyebrow mb-2">
-          Recent activity
-        </h2>
+        <h2 className="eyebrow mb-2">Recent activity</h2>
         {recent.length === 0 ? (
           <div className="flex gap-2">
             <Link
@@ -158,6 +148,11 @@ export default async function DashboardPage() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section>
+        <h2 className="eyebrow mb-2">Backup</h2>
+        <BackupPanel />
       </section>
     </div>
   );

@@ -1,20 +1,9 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
-import { saveWorkout, type WorkoutPayload } from "@/app/(app)/workouts/actions";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { saveWorkout, type Exercise, type Workout, type WorkoutPayload } from "@/lib/store";
 import { todayISO } from "@/lib/format";
-
-export type ExerciseOption = { id: number; name: string };
-
-export type WorkoutFormInitial = {
-  date: string;
-  name: string | null;
-  notes: string | null;
-  exercises: {
-    exerciseId: number;
-    sets: { weightKg: number; reps: number }[];
-  }[];
-};
 
 type SetDraft = { key: string; weightKg: string; reps: string };
 type ExerciseDraft = { key: string; exerciseId: string; sets: SetDraft[] };
@@ -35,16 +24,17 @@ function newExercise(): ExerciseDraft {
 }
 
 export default function WorkoutForm({
-  sessionId,
+  workoutId,
   exerciseOptions,
   initial,
   submitLabel,
 }: {
-  sessionId: number | null;
-  exerciseOptions: ExerciseOption[];
-  initial?: WorkoutFormInitial;
+  workoutId: number | null;
+  exerciseOptions: Exercise[];
+  initial?: Omit<Workout, "id">;
   submitLabel: string;
 }) {
+  const router = useRouter();
   const [date, setDate] = useState(initial?.date ?? todayISO());
   const [name, setName] = useState(initial?.name ?? "");
   const [notes, setNotes] = useState(initial?.notes ?? "");
@@ -62,17 +52,12 @@ export default function WorkoutForm({
       : [newExercise()]
   );
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-  // Synchronous double-submit guard; `pending` flips too late for a double-click.
-  const submittedRef = useRef(false);
 
   const updateBlock = (key: string, fn: (b: ExerciseDraft) => ExerciseDraft) =>
     setBlocks((bs) => bs.map((b) => (b.key === key ? fn(b) : b)));
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (submittedRef.current) return;
-    submittedRef.current = true;
     setError(null);
     const payload: WorkoutPayload = {
       date,
@@ -86,13 +71,9 @@ export default function WorkoutForm({
         })),
       })),
     };
-    startTransition(async () => {
-      const result = await saveWorkout(sessionId, payload);
-      if (result?.error) {
-        setError(result.error);
-        submittedRef.current = false;
-      }
-    });
+    const result = saveWorkout(workoutId, payload);
+    if (result?.error) setError(result.error);
+    else router.push("/workouts");
   }
 
   return (
@@ -164,7 +145,7 @@ export default function WorkoutForm({
                 key={set.key}
                 className="grid grid-cols-[2rem_1fr_1fr_2.5rem] items-center gap-2"
               >
-                <span className="text-sm text-ink-muted">{setIdx + 1}</span>
+                <span className="num text-sm text-ink-muted">{setIdx + 1}</span>
                 <input
                   type="number"
                   inputMode="decimal"
@@ -256,10 +237,9 @@ export default function WorkoutForm({
 
       <button
         type="submit"
-        disabled={pending}
-        className="h-12 w-full rounded-lg bg-lift font-semibold text-background hover:opacity-90 disabled:opacity-50"
+        className="h-12 w-full rounded-lg bg-lift font-semibold text-background hover:opacity-90"
       >
-        {pending ? "Saving…" : submitLabel}
+        {submitLabel}
       </button>
     </form>
   );

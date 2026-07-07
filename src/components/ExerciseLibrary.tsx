@@ -1,55 +1,59 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useState } from "react";
 import {
-  createExercise,
+  useStore,
+  addExercise,
   renameExercise,
   deleteExercise,
-  type ExerciseActionState,
-} from "@/app/(app)/exercises/actions";
-
-export type ExerciseWithUsage = { id: number; name: string; usageCount: number };
+  exerciseUsageCount,
+  type Exercise,
+  type Store,
+} from "@/lib/store";
 
 const inputCls =
   "h-12 w-full rounded-lg border border-hairline px-3 focus:border-foreground focus:outline-none";
 
-function ExerciseRow({ exercise }: { exercise: ExerciseWithUsage }) {
+function ExerciseRow({ exercise, store }: { exercise: Exercise; store: Store }) {
   const [editing, setEditing] = useState(false);
-  const [renameState, renameAction, renaming] = useActionState(
-    async (prev: ExerciseActionState, formData: FormData) => {
-      const result = await renameExercise(exercise.id, prev, formData);
-      if (!result) setEditing(false);
-      return result;
-    },
-    null
-  );
-  const [deleteState, deleteAction, deleting] = useActionState(
-    () => deleteExercise(exercise.id),
-    null
-  );
+  const [draft, setDraft] = useState(exercise.name);
+  const [error, setError] = useState<string | null>(null);
+  const usage = exerciseUsageCount(store, exercise.id);
+
+  function handleRename(e: React.FormEvent) {
+    e.preventDefault();
+    const result = renameExercise(exercise.id, draft);
+    if (result?.error) setError(result.error);
+    else {
+      setError(null);
+      setEditing(false);
+    }
+  }
 
   return (
     <li className="rounded-xl border border-hairline bg-card p-3">
       {editing ? (
-        <form action={renameAction} className="flex items-center gap-2">
+        <form onSubmit={handleRename} className="flex items-center gap-2">
           <input
-            name="name"
-            defaultValue={exercise.name}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
             required
             autoFocus
             className={inputCls}
           />
           <button
             type="submit"
-            disabled={renaming}
-            className="rounded-lg bg-foreground text-background px-3 py-2 text-sm font-semibold  disabled:opacity-50"
+            className="rounded-lg bg-foreground px-3 py-2 text-sm font-semibold text-background"
           >
             Save
           </button>
           <button
             type="button"
-            onClick={() => setEditing(false)}
+            onClick={() => {
+              setEditing(false);
+              setError(null);
+            }}
             className="rounded-lg px-3 py-2 text-sm text-ink-muted"
           >
             Cancel
@@ -59,75 +63,83 @@ function ExerciseRow({ exercise }: { exercise: ExerciseWithUsage }) {
         <div className="flex items-center justify-between gap-2">
           <div>
             <Link
-              href={`/exercises/${exercise.id}`}
+              href={`/exercises/view?id=${exercise.id}`}
               className="font-medium hover:underline"
             >
               {exercise.name}
             </Link>
             <div className="text-xs text-ink-muted">
-              {exercise.usageCount === 0
+              {usage === 0
                 ? "Not used yet"
-                : `Used in ${exercise.usageCount} workout${exercise.usageCount === 1 ? "" : "s"}`}
+                : `Used in ${usage} workout${usage === 1 ? "" : "s"}`}
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <button
-              onClick={() => setEditing(true)}
+              onClick={() => {
+                setDraft(exercise.name);
+                setEditing(true);
+              }}
               className="rounded-lg px-3 py-2 text-sm font-medium text-ink-muted hover:bg-hairline"
             >
               Rename
             </button>
-            <form
-              action={deleteAction}
-              onSubmit={(e) => {
-                if (!window.confirm(`Delete "${exercise.name}"?`)) e.preventDefault();
+            <button
+              onClick={() => {
+                if (!window.confirm(`Delete "${exercise.name}"?`)) return;
+                const result = deleteExercise(exercise.id);
+                setError(result?.error ?? null);
               }}
+              className="rounded-lg px-3 py-2 text-sm font-medium text-lift hover:bg-lift/10"
             >
-              <button
-                type="submit"
-                disabled={deleting}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-lift hover:bg-lift/10 disabled:opacity-50"
-              >
-                Delete
-              </button>
-            </form>
+              Delete
+            </button>
           </div>
         </div>
       )}
-      {(renameState?.error || deleteState?.error) && (
-        <p className="mt-2 text-sm text-lift">
-          {renameState?.error ?? deleteState?.error}
-        </p>
-      )}
+      {error && <p className="mt-2 text-sm text-lift">{error}</p>}
     </li>
   );
 }
 
-export default function ExerciseLibrary({ items }: { items: ExerciseWithUsage[] }) {
-  const [addState, addAction, adding] = useActionState(createExercise, null);
+export default function ExerciseLibrary() {
+  const store = useStore();
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const items = [...store.exercises].sort((a, b) => a.name.localeCompare(b.name));
+
+  function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    const result = addExercise(name);
+    if (result?.error) setError(result.error);
+    else {
+      setError(null);
+      setName("");
+    }
+  }
 
   return (
     <div className="space-y-4">
-      <form action={addAction} className="flex gap-2">
+      <form onSubmit={handleAdd} className="flex gap-2">
         <input
-          name="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           required
           placeholder="New exercise name"
           className={inputCls}
         />
         <button
           type="submit"
-          disabled={adding}
-          className="shrink-0 rounded-lg bg-foreground text-background px-4 py-2 font-semibold  hover:opacity-90 disabled:opacity-50"
+          className="shrink-0 rounded-lg bg-foreground px-4 py-2 font-semibold text-background hover:opacity-90"
         >
           Add
         </button>
       </form>
-      {addState?.error && <p className="text-sm text-lift">{addState.error}</p>}
+      {error && <p className="text-sm text-lift">{error}</p>}
 
       <ul className="space-y-2">
         {items.map((e) => (
-          <ExerciseRow key={e.id} exercise={e} />
+          <ExerciseRow key={e.id} exercise={e} store={store} />
         ))}
       </ul>
     </div>

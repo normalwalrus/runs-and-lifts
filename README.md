@@ -1,30 +1,24 @@
-# Fitness Tracker
+# Runs & Lifts — personal training log
 
-Personal web app for tracking runs (distance, pace, time) and weight-lifting workouts (per-set weight × reps), with progress charts and personal records. Single user, password-protected, local SQLite database.
+Tracks runs (distance, pace, time) and weight-lifting workouts (per-set weight × reps), with progress charts and personal records. Fully client-side: **your data lives in your browser's localStorage** — nothing is sent to any server. Use the Backup section on the dashboard to export/import your data as JSON.
+
+Live site: deployed to GitHub Pages by the workflow in `.github/workflows/deploy.yml` on every push to `main`.
 
 ## Stack
 
-Next.js (App Router, TypeScript) · Tailwind CSS · Drizzle ORM + better-sqlite3 · Recharts · jose (session cookie)
+Next.js (App Router, static export) · TypeScript · Tailwind CSS · Recharts · localStorage
 
-## Setup
+## Development
 
 ```bash
-cp .env.example .env   # then fill in APP_PASSWORD and SESSION_SECRET
 npm install
-npm run db:push        # create tables in data/fitness.db
-npm run db:seed        # seed common exercises (idempotent)
-npm run dev            # http://localhost:3000
-```
-
-Generate a session secret with:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+npm run dev     # http://localhost:3000/runs-and-lifts
+npm run build   # static export to out/
 ```
 
 ## Pages
 
-- `/` — dashboard: PRs, weekly/monthly totals, recent activity
+- `/` — dashboard: PRs, weekly/monthly totals, recent activity, backup export/import
 - `/runs` — run log (pace and speed auto-calculated from distance + time)
 - `/workouts` — lifting sessions with per-set weight × reps
 - `/exercises` — exercise library (add/rename/delete), per-exercise progression
@@ -32,6 +26,6 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ## Notes
 
-- All data lives in `data/fitness.db` (gitignored). Back it up by copying the file.
-- Weights are kg, distances km. Dates are stored as `YYYY-MM-DD` text.
+- Weights are kg, distances km. Data model versioned under the `runs-and-lifts:v1` localStorage key.
+- Each browser/device has its own data; move it with Export/Import on the dashboard.
 - Deleting an exercise that's used in a workout is blocked; delete the workouts first.

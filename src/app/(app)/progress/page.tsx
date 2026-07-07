@@ -1,32 +1,29 @@
-import { asc } from "drizzle-orm";
-import { db } from "@/db";
-import { exercises } from "@/db/schema";
+"use client";
+
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { useStore } from "@/lib/store";
 import { getExerciseProgress, getExercisePRs, getRunTrend } from "@/lib/stats";
 import TrendChart from "@/components/charts/TrendChart";
 import ExercisePicker from "@/components/ExercisePicker";
 
-export const dynamic = "force-dynamic";
+function Progress() {
+  const params = useSearchParams();
+  const store = useStore();
+  const exercise = params.get("exercise");
 
-export default async function ProgressPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ exercise?: string }>;
-}) {
-  const { exercise } = await searchParams;
-
-  const runTrend = await getRunTrend();
-  const exerciseOptions = await db
-    .select({ id: exercises.id, name: exercises.name })
-    .from(exercises)
-    .orderBy(asc(exercises.name));
+  const runTrend = getRunTrend(store.runs);
+  const exerciseOptions = [...store.exercises].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
 
   // Default to an exercise that actually has logged sets, not the first alphabetically.
-  const trained = await getExercisePRs();
+  const trained = getExercisePRs(store);
   const selectedId = exercise
     ? Number(exercise)
     : trained[0]?.exerciseId ?? exerciseOptions[0]?.id ?? null;
   const selected = exerciseOptions.find((e) => e.id === selectedId) ?? null;
-  const progression = selectedId ? await getExerciseProgress(selectedId) : [];
+  const progression = selectedId ? getExerciseProgress(store, selectedId) : [];
 
   return (
     <div className="space-y-6">
@@ -59,5 +56,13 @@ export default async function ProgressPage({
         />
       </section>
     </div>
+  );
+}
+
+export default function ProgressPage() {
+  return (
+    <Suspense>
+      <Progress />
+    </Suspense>
   );
 }

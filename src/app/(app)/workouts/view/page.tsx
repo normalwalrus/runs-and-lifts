@@ -1,33 +1,28 @@
+"use client";
+
+import { Suspense } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { asc } from "drizzle-orm";
-import { db } from "@/db";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useStore, deleteWorkout } from "@/lib/store";
+import { workoutVolume } from "@/lib/stats";
 import { formatDate, formatWeight } from "@/lib/format";
 import DeleteButton from "@/components/DeleteButton";
-import { deleteWorkout } from "../actions";
 
-export const dynamic = "force-dynamic";
+function WorkoutDetail() {
+  const params = useSearchParams();
+  const router = useRouter();
+  const store = useStore();
+  const id = Number(params.get("id"));
+  const session = store.workouts.find((w) => w.id === id);
 
-export default async function WorkoutDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const session = await db.query.workoutSessions.findFirst({
-    where: (ws, { eq }) => eq(ws.id, Number(id)),
-    with: {
-      sessionExercises: {
-        orderBy: (se) => [asc(se.position)],
-        with: { exercise: true, sets: { orderBy: (s) => [asc(s.position)] } },
-      },
-    },
-  });
-  if (!session) notFound();
+  if (!session) {
+    return (
+      <p className="text-ink-muted">Workout not found — it may have been deleted.</p>
+    );
+  }
 
-  const volume = session.sessionExercises
-    .flatMap((se) => se.sets)
-    .reduce((sum, s) => sum + s.weightKg * s.reps, 0);
+  const exerciseName = (exerciseId: number) =>
+    store.exercises.find((e) => e.id === exerciseId)?.name ?? "Unknown";
 
   return (
     <div className="space-y-4">
@@ -35,18 +30,22 @@ export default async function WorkoutDetailPage({
         <div>
           <h1 className="text-2xl font-bold">{session.name ?? "Workout"}</h1>
           <p className="num text-sm text-ink-muted">
-            {formatDate(session.date)} · {formatWeight(volume)} total volume
+            {formatDate(session.date)} · {formatWeight(workoutVolume(session))} total
+            volume
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <Link
-            href={`/workouts/${session.id}/edit`}
+            href={`/workouts/edit?id=${session.id}`}
             className="rounded-lg px-3 py-2 text-sm font-medium text-ink-muted hover:bg-hairline"
           >
             Edit
           </Link>
           <DeleteButton
-            action={deleteWorkout.bind(null, session.id)}
+            onDelete={() => {
+              deleteWorkout(session.id);
+              router.push("/workouts");
+            }}
             confirmMessage="Delete this workout and all its sets?"
           />
         </div>
@@ -59,16 +58,13 @@ export default async function WorkoutDetailPage({
       )}
 
       <div className="space-y-3">
-        {session.sessionExercises.map((se) => (
-          <div
-            key={se.id}
-            className="rounded-xl border border-hairline bg-card p-4"
-          >
+        {session.exercises.map((se, i) => (
+          <div key={i} className="rounded-xl border border-hairline bg-card p-4">
             <Link
-              href={`/exercises/${se.exerciseId}`}
+              href={`/exercises/view?id=${se.exerciseId}`}
               className="font-semibold hover:underline"
             >
-              {se.exercise.name}
+              {exerciseName(se.exerciseId)}
             </Link>
             <table className="mt-2 w-full text-sm">
               <thead>
@@ -79,9 +75,9 @@ export default async function WorkoutDetailPage({
                 </tr>
               </thead>
               <tbody>
-                {se.sets.map((s, i) => (
-                  <tr key={s.id} className="num border-t border-hairline">
-                    <td className="py-1.5 text-ink-muted">{i + 1}</td>
+                {se.sets.map((s, j) => (
+                  <tr key={j} className="num border-t border-hairline">
+                    <td className="py-1.5 text-ink-muted">{j + 1}</td>
                     <td className="py-1.5">{formatWeight(s.weightKg)}</td>
                     <td className="py-1.5">{s.reps}</td>
                   </tr>
@@ -92,5 +88,13 @@ export default async function WorkoutDetailPage({
         ))}
       </div>
     </div>
+  );
+}
+
+export default function WorkoutDetailPage() {
+  return (
+    <Suspense>
+      <WorkoutDetail />
+    </Suspense>
   );
 }

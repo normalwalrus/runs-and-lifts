@@ -1,45 +1,44 @@
+"use client";
+
+import { Suspense } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { exercises, sessionExercises, sets, workoutSessions } from "@/db/schema";
+import { useSearchParams } from "next/navigation";
+import { useStore } from "@/lib/store";
 import { getExerciseProgress } from "@/lib/stats";
 import { formatDate, formatWeight } from "@/lib/format";
 import StatCard from "@/components/StatCard";
 import TrendChart from "@/components/charts/TrendChart";
 
-export const dynamic = "force-dynamic";
+function ExerciseDetail() {
+  const params = useSearchParams();
+  const store = useStore();
+  const id = Number(params.get("id"));
+  const exercise = store.exercises.find((e) => e.id === id);
 
-export default async function ExerciseDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const [exercise] = await db
-    .select()
-    .from(exercises)
-    .where(eq(exercises.id, Number(id)))
-    .limit(1);
-  if (!exercise) notFound();
+  if (!exercise) {
+    return (
+      <p className="text-ink-muted">Exercise not found — it may have been deleted.</p>
+    );
+  }
 
-  const progression = await getExerciseProgress(exercise.id);
+  const progression = getExerciseProgress(store, exercise.id);
 
-  const history = await db
-    .select({
-      setId: sets.id,
-      sessionId: workoutSessions.id,
-      date: workoutSessions.date,
-      weightKg: sets.weightKg,
-      reps: sets.reps,
-      position: sets.position,
-    })
-    .from(sets)
-    .innerJoin(sessionExercises, eq(sets.sessionExerciseId, sessionExercises.id))
-    .innerJoin(workoutSessions, eq(sessionExercises.sessionId, workoutSessions.id))
-    .where(eq(sessionExercises.exerciseId, exercise.id))
-    .orderBy(desc(workoutSessions.date), desc(sessionExercises.id), sets.position)
-    .limit(30);
+  const history = store.workouts
+    .flatMap((w) =>
+      w.exercises
+        .filter((ex) => ex.exerciseId === exercise.id)
+        .flatMap((ex) =>
+          ex.sets.map((s, i) => ({
+            workoutId: w.id,
+            date: w.date,
+            position: i,
+            weightKg: s.weightKg,
+            reps: s.reps,
+          }))
+        )
+    )
+    .sort((a, b) => b.date.localeCompare(a.date) || b.workoutId - a.workoutId)
+    .slice(0, 30);
 
   const heaviest = history.reduce(
     (best, s) => (best === null || s.weightKg > best.weightKg ? s : best),
@@ -65,6 +64,7 @@ export default async function ExerciseDetailPage({
             {heaviest && (
               <StatCard
                 label="Heaviest set"
+                accent="gold"
                 value={`${formatWeight(heaviest.weightKg)} × ${heaviest.reps}`}
                 detail={formatDate(heaviest.date)}
               />
@@ -72,6 +72,7 @@ export default async function ExerciseDetailPage({
             {bestVolumeSet && (
               <StatCard
                 label="Biggest set (kg × reps)"
+                accent="gold"
                 value={formatWeight(bestVolumeSet.weightKg * bestVolumeSet.reps)}
                 detail={`${formatWeight(bestVolumeSet.weightKg)} × ${bestVolumeSet.reps} on ${formatDate(bestVolumeSet.date)}`}
               />
@@ -99,14 +100,11 @@ export default async function ExerciseDetailPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {history.map((s) => (
-                    <tr
-                      key={s.setId}
-                      className="num border-t border-hairline"
-                    >
+                  {history.map((s, i) => (
+                    <tr key={i} className="num border-t border-hairline">
                       <td className="p-3">
                         <Link
-                          href={`/workouts/${s.sessionId}`}
+                          href={`/workouts/view?id=${s.workoutId}`}
                           className="hover:underline"
                         >
                           {formatDate(s.date)}
@@ -124,5 +122,13 @@ export default async function ExerciseDetailPage({
         </>
       )}
     </div>
+  );
+}
+
+export default function ExerciseDetailPage() {
+  return (
+    <Suspense>
+      <ExerciseDetail />
+    </Suspense>
   );
 }

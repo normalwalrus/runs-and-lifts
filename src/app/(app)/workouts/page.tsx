@@ -1,15 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import { desc } from "drizzle-orm";
-import { db } from "@/db";
+import { useStore } from "@/lib/store";
+import { workoutVolume } from "@/lib/stats";
 import { formatDate, formatWeight } from "@/lib/format";
 
-export const dynamic = "force-dynamic";
-
-export default async function WorkoutsPage() {
-  const sessions = await db.query.workoutSessions.findMany({
-    orderBy: (ws) => [desc(ws.date), desc(ws.createdAt)],
-    with: { sessionExercises: { with: { sets: true } } },
-  });
+export default function WorkoutsPage() {
+  const store = useStore();
+  const sessions = [...store.workouts].sort(
+    (a, b) => b.date.localeCompare(a.date) || b.id - a.id
+  );
 
   return (
     <div className="space-y-4">
@@ -30,25 +30,22 @@ export default async function WorkoutsPage() {
       ) : (
         <ul className="space-y-2">
           {sessions.map((session) => {
-            const allSets = session.sessionExercises.flatMap((se) => se.sets);
-            const volume = allSets.reduce((sum, s) => sum + s.weightKg * s.reps, 0);
+            const setCount = session.exercises.reduce((n, ex) => n + ex.sets.length, 0);
             return (
               <li key={session.id}>
                 <Link
-                  href={`/workouts/${session.id}`}
+                  href={`/workouts/view?id=${session.id}`}
                   className="block rounded-xl border border-hairline bg-card p-4 hover:border-ink-muted"
                 >
                   <div className="num flex items-center gap-2 text-sm text-ink-muted">
                     <span className="plate bg-lift" aria-hidden />
                     {formatDate(session.date)}
                   </div>
-                  <div className="mt-1 font-semibold">
-                    {session.name ?? "Workout"}
-                  </div>
+                  <div className="mt-1 font-semibold">{session.name ?? "Workout"}</div>
                   <div className="num text-sm text-ink-muted">
-                    {session.sessionExercises.length} exercise
-                    {session.sessionExercises.length === 1 ? "" : "s"} · {allSets.length}{" "}
-                    sets · {formatWeight(volume)} total volume
+                    {session.exercises.length} exercise
+                    {session.exercises.length === 1 ? "" : "s"} · {setCount} sets ·{" "}
+                    {formatWeight(workoutVolume(session))} total volume
                   </div>
                 </Link>
               </li>

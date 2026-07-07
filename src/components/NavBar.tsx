@@ -11,7 +11,7 @@ const LINKS = [
   { href: "/progress", label: "Progress" },
 ];
 
-export default function NavBar({ logoutAction }: { logoutAction: () => Promise<void> }) {
+export default function NavBar() {
   const pathname = usePathname();
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -45,11 +45,9 @@ export default function NavBar({ logoutAction }: { logoutAction: () => Promise<v
             </Link>
           ))}
         </nav>
-        <form action={logoutAction}>
-          <button className="w-full rounded-lg px-3 py-2 text-left text-sm text-ink-muted hover:bg-hairline/50 hover:text-foreground">
-            Log out
-          </button>
-        </form>
+        <p className="px-3 text-xs text-ink-muted">
+          Data is stored in this browser.
+        </p>
       </aside>
 
       {/* Mobile bottom tab bar */}

@@ -1,18 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import { desc } from "drizzle-orm";
-import { db } from "@/db";
-import { runs } from "@/db/schema";
+import { useStore, deleteRun } from "@/lib/store";
 import { formatDate, formatDuration, formatPace, formatSpeed } from "@/lib/format";
 import DeleteButton from "@/components/DeleteButton";
-import { deleteRun } from "./actions";
 
-export const dynamic = "force-dynamic";
-
-export default async function RunsPage() {
-  const allRuns = await db
-    .select()
-    .from(runs)
-    .orderBy(desc(runs.date), desc(runs.createdAt));
+export default function RunsPage() {
+  const store = useStore();
+  const allRuns = [...store.runs].sort(
+    (a, b) => b.date.localeCompare(a.date) || b.id - a.id
+  );
 
   return (
     <div className="space-y-4">
@@ -56,13 +53,13 @@ export default async function RunsPage() {
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   <Link
-                    href={`/runs/${run.id}/edit`}
+                    href={`/runs/edit?id=${run.id}`}
                     className="rounded-lg px-3 py-2 text-sm font-medium text-ink-muted hover:bg-hairline"
                   >
                     Edit
                   </Link>
                   <DeleteButton
-                    action={deleteRun.bind(null, run.id)}
+                    onDelete={() => deleteRun(run.id)}
                     confirmMessage="Delete this run?"
                   />
                 </div>
