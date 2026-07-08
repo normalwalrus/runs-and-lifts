@@ -9,7 +9,14 @@ import {
   getFastestRun,
   getLongestRun,
 } from "@/lib/stats";
-import { formatDate, formatDuration, formatPace, formatWeight } from "@/lib/format";
+import {
+  formatDate,
+  formatDuration,
+  formatPace,
+  formatWeight,
+  todayISO,
+  volumeQuip,
+} from "@/lib/format";
 import StatCard from "@/components/StatCard";
 import BackupPanel from "@/components/BackupPanel";
 
@@ -50,13 +57,21 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <header>
+        <div className="eyebrow">
+          <span className="text-gold">Athlete 001</span> · {formatDate(todayISO())}
+        </div>
+        <h1 className="display mt-1 text-5xl uppercase italic leading-none">
+          Race control
+        </h1>
+        <div className="chevrons mt-3 w-24" aria-hidden />
+      </header>
 
       <section>
-        <h2 className="eyebrow mb-2">Personal records</h2>
+        <h2 className="eyebrow mb-2 text-gold">Course records</h2>
         {!fastest && prs.length === 0 ? (
           <p className="rounded-lg border border-dashed border-hairline p-6 text-center text-sm text-ink-muted">
-            Log some runs and workouts to see your PRs here.
+            No course records yet. The podium is self-assembly — bring your own reps.
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
@@ -90,36 +105,41 @@ export default function DashboardPage() {
       </section>
 
       <section>
-        <h2 className="eyebrow mb-2">This week / month</h2>
-        <div className="grid grid-cols-2 gap-2">
+        <h2 className="sr-only">This week and this month</h2>
+        <div className="grid grid-cols-2 divide-x divide-hairline rounded-xl border border-hairline bg-card">
           {[
             { label: "This week", totals: weekly },
             { label: "This month", totals: monthly },
           ].map(({ label, totals }) => (
-            <StatCard
-              key={label}
-              label={label}
-              value={`${totals.runDistanceKm.toFixed(1)} km · ${totals.workoutCount} lift${totals.workoutCount === 1 ? "" : "s"}`}
-              detail={`${totals.runCount} run${totals.runCount === 1 ? "" : "s"} · ${formatWeight(totals.volumeKg)} volume`}
-            />
+            <div key={label} className="p-4">
+              <div className="eyebrow">{label}</div>
+              <div className="num mt-1.5 text-2xl font-bold">
+                {totals.runDistanceKm.toFixed(1)}{" "}
+                <span className="text-sm font-medium text-ink-muted">km</span>
+              </div>
+              <div className="num mt-0.5 text-xs text-ink-muted">
+                {totals.runCount} run{totals.runCount === 1 ? "" : "s"} ·{" "}
+                {totals.workoutCount} lift{totals.workoutCount === 1 ? "" : "s"} ·{" "}
+                {formatWeight(totals.volumeKg)} volume
+              </div>
+              {volumeQuip(totals.volumeKg) && (
+                <div className="mt-0.5 text-xs italic text-ink-muted">
+                  {volumeQuip(totals.volumeKg)}, lifted
+                </div>
+              )}
+            </div>
           ))}
         </div>
       </section>
 
       <section>
-        <h2 className="eyebrow mb-2">Recent activity</h2>
+        <h2 className="eyebrow mb-2 text-gold">Recent heats</h2>
         {recent.length === 0 ? (
           <div className="flex gap-2">
-            <Link
-              href="/runs/new"
-              className="rounded-lg bg-run px-4 py-2 font-semibold text-background hover:opacity-90"
-            >
+            <Link href="/runs/new" className="cta rounded-md px-4 py-2">
               Log a run
             </Link>
-            <Link
-              href="/workouts/new"
-              className="rounded-lg bg-lift px-4 py-2 font-semibold text-background hover:opacity-90"
-            >
+            <Link href="/workouts/new" className="cta rounded-md px-4 py-2">
               Log a workout
             </Link>
           </div>

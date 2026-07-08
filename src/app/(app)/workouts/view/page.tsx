@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useStore, deleteWorkout } from "@/lib/store";
 import { workoutVolume } from "@/lib/stats";
-import { formatDate, formatWeight } from "@/lib/format";
+import { formatDate, formatWeight, volumeQuip } from "@/lib/format";
 import DeleteButton from "@/components/DeleteButton";
 
 function WorkoutDetail() {
@@ -28,10 +28,15 @@ function WorkoutDetail() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold">{session.name ?? "Workout"}</h1>
+          <h1 className="display text-4xl uppercase italic leading-none">
+            {session.name ?? "Workout"}
+          </h1>
           <p className="num text-sm text-ink-muted">
             {formatDate(session.date)} · {formatWeight(workoutVolume(session))} total
             volume
+            {volumeQuip(workoutVolume(session)) && (
+              <span className="italic"> ({volumeQuip(workoutVolume(session))})</span>
+            )}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -46,7 +51,7 @@ function WorkoutDetail() {
               deleteWorkout(session.id);
               router.push("/workouts");
             }}
-            confirmMessage="Delete this workout and all its sets?"
+            confirmMessage="Delete this workout and all its sets? The stewards will strike it from the record."
           />
         </div>
       </div>
@@ -68,10 +73,10 @@ function WorkoutDetail() {
             </Link>
             <table className="mt-2 w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-ink-muted">
-                  <th className="py-1 font-medium">Set</th>
-                  <th className="py-1 font-medium">Weight</th>
-                  <th className="py-1 font-medium">Reps</th>
+                <tr className="text-left">
+                  <th className="eyebrow py-1">Set</th>
+                  <th className="eyebrow py-1">Weight</th>
+                  <th className="eyebrow py-1">Reps</th>
                 </tr>
               </thead>
               <tbody>

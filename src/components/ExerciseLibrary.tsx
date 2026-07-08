@@ -42,10 +42,7 @@ function ExerciseRow({ exercise, store }: { exercise: Exercise; store: Store }) 
             autoFocus
             className={inputCls}
           />
-          <button
-            type="submit"
-            className="rounded-lg bg-foreground px-3 py-2 text-sm font-semibold text-background"
-          >
+          <button type="submit" className="cta rounded-md px-3 py-2 text-sm">
             Save
           </button>
           <button
@@ -86,7 +83,12 @@ function ExerciseRow({ exercise, store }: { exercise: Exercise; store: Store }) 
             </button>
             <button
               onClick={() => {
-                if (!window.confirm(`Delete "${exercise.name}"?`)) return;
+                if (
+                  !window.confirm(
+                    `Delete "${exercise.name}"? It will be retired from the course.`
+                  )
+                )
+                  return;
                 const result = deleteExercise(exercise.id);
                 setError(result?.error ?? null);
               }}
@@ -125,12 +127,12 @@ export default function ExerciseLibrary() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          placeholder="New exercise name"
+          placeholder="Add to the arsenal…"
           className={inputCls}
         />
         <button
           type="submit"
-          className="shrink-0 rounded-lg bg-foreground px-4 py-2 font-semibold text-background hover:opacity-90"
+          className="cta shrink-0 rounded-md px-4 py-2"
         >
           Add
         </button>

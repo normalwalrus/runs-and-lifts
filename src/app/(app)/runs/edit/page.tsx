@@ -31,7 +31,10 @@ function EditRun() {
 export default function EditRunPage() {
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Edit run</h1>
+      <div>
+        <div className="eyebrow text-gold">Stewards&apos; inquiry</div>
+        <h1 className="display mt-1 text-4xl uppercase italic leading-none">Edit run</h1>
+      </div>
       <Suspense>
         <EditRun />
       </Suspense>

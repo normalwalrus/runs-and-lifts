@@ -1,23 +1,24 @@
 @import "tailwindcss";
 
 /*
- * Training-log identity: chalk & iron surfaces, Olympic plate colors as
- * the only accents — blue (20 kg) = runs, red (25 kg) = lifting,
- * gold = records. Validated for contrast + CVD on both surfaces.
+ * Race-night identity (Hyrox energy): carbon floor, signal-yellow chevrons,
+ * one athlete under the lights. Dark only — race day has no light mode.
+ * Plate colors stay as data coding: blue = runs, red = lifting,
+ * yellow = records and go-signals.
  */
 :root {
-  --background: #f4f4f0; /* chalk */
-  --foreground: #1b1b18; /* ink */
-  --card: #fdfdfb;
-  --hairline: #e0dfd8;
-  --ink-muted: #6b6a64;
-  --run: #1d5fbf;
-  --lift: #c62e2e;
-  --gold: #a87900;
+  --background: #0e0f11; /* carbon */
+  --foreground: #f2f2ee; /* floodlight */
+  --card: #17181b;
+  --hairline: #2a2c30;
+  --ink-muted: #989992;
+  --run: #4f8dff;
+  --lift: #ff5a52;
+  --gold: #ffd400; /* signal yellow */
   /* chart chrome */
-  --chart-grid: #e0dfd8;
-  --chart-axis: #c9c8c0;
-  --chart-muted: #8b8a82;
+  --chart-grid: #26272b;
+  --chart-axis: #3a3b40;
+  --chart-muted: #8f9088;
 }
 
 @theme inline {
@@ -33,26 +34,27 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #131316; /* iron */
-    --foreground: #ececea;
-    --card: #1b1b1f;
-    --hairline: #2a2a2e;
-    --ink-muted: #92928c;
-    --run: #5b8fe8;
-    --lift: #e05a52;
-    --gold: #b08000;
-    --chart-grid: #2a2a2e;
-    --chart-axis: #3a3a3f;
-    --chart-muted: #8b8a82;
-  }
-}
-
 body {
   background: var(--background);
+  /* faint lane markings on the carbon floor */
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.015) 0 24px,
+    transparent 24px 48px
+  );
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* go-signal CTA: signal yellow with the racing lean */
+.cta {
+  background: var(--gold);
+  color: var(--background);
+  font-weight: 700;
+  transform: skewX(-8deg);
+}
+.cta:hover {
+  opacity: 0.9;
 }
 
 /* every metric wears the chronograph face */
@@ -61,27 +63,102 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* section labels, set like lap markers */
-.eyebrow {
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
+/* headlines wear the race bib: condensed, load-bearing */
+.display {
+  font-family: var(--font-barlow-condensed), var(--font-geist-sans), sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.015em;
 }
 
-/* signature: the plate disc */
+/* section labels, set like lap markers — layered so color
+   utilities like text-gold can override the muted default */
+@layer components {
+  .eyebrow {
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+}
+
+/* signature: the start-line chevron strip */
+.chevrons {
+  height: 6px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--gold) 0 10px,
+    transparent 10px 20px
+  );
+}
+
+/* signature: the plate disc — a punched center hole makes it a plate, not a dot */
 .plate {
   display: inline-block;
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 0.625rem;
+  height: 0.625rem;
   border-radius: 9999px;
   flex-shrink: 0;
+  -webkit-mask: radial-gradient(circle, transparent 0 1.5px, #000 2px);
+  mask: radial-gradient(circle, transparent 0 1.5px, #000 2px);
+}
+
+.plate-lg {
+  width: 0.875rem;
+  height: 0.875rem;
+  -webkit-mask: radial-gradient(circle, transparent 0 2px, #000 2.5px);
+  mask: radial-gradient(circle, transparent 0 2px, #000 2.5px);
+}
+
+/* signature: the loaded bar, side-on — 25s (red) outside, 20s (blue) inside */
+.barbell {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 1.25rem;
+  width: 5.5rem;
+}
+.barbell > i {
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+.barbell .bb-stub {
+  width: 7px;
+  height: 3px;
+  background: var(--ink-muted);
+}
+.barbell .bb-25 {
+  width: 5px;
+  height: 100%;
+  background: var(--lift);
+}
+.barbell .bb-20 {
+  width: 5px;
+  height: 78%;
+  background: var(--run);
+}
+.barbell .bb-shaft {
+  flex: 1;
+  height: 3px;
+  background: var(--ink-muted);
+}
+
+/* quiet motion: interactive surfaces ease, nothing else moves */
+a,
+button,
+input,
+select,
+textarea {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease;
 }
 
 :focus-visible {
-  outline: 2px solid var(--foreground);
+  outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
 

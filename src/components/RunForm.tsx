@@ -133,7 +133,7 @@ export default function RunForm({
             <strong className="num">{preview.speed}</strong>
           </span>
         ) : (
-          "Pace and speed will be calculated automatically"
+          "Splits compute themselves — you just run"
         )}
       </div>
 
@@ -143,6 +143,7 @@ export default function RunForm({
           rows={2}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
+          placeholder="negative splits, positive vibes"
           className="w-full rounded-lg border border-hairline p-3 focus:border-foreground focus:outline-none"
         />
       </div>
@@ -151,7 +152,7 @@ export default function RunForm({
 
       <button
         type="submit"
-        className="h-12 w-full rounded-lg bg-run font-semibold text-background hover:opacity-90"
+        className="cta h-12 w-full rounded-md"
       >
         {submitLabel}
       </button>

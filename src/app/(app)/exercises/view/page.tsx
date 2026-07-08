@@ -52,11 +52,13 @@ function ExerciseDetail() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{exercise.name}</h1>
+      <h1 className="display text-4xl uppercase italic leading-none">
+        {exercise.name}
+      </h1>
 
       {history.length === 0 ? (
         <p className="rounded-lg border border-dashed border-hairline p-8 text-center text-ink-muted">
-          No sets logged for this exercise yet.
+          No sets logged for this exercise yet — it&apos;s still on the shelf.
         </p>
       ) : (
         <>
@@ -80,7 +82,7 @@ function ExerciseDetail() {
           </div>
 
           <section className="space-y-2">
-            <h2 className="font-semibold">Progression (top set kg)</h2>
+            <h2 className="display text-lg">Progression (top set kg)</h2>
             <TrendChart
               metric="weight"
               data={progression.map((p) => ({ date: p.date, value: p.topWeightKg }))}
@@ -88,15 +90,15 @@ function ExerciseDetail() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="font-semibold">Recent sets</h2>
+            <h2 className="display text-lg">Recent sets</h2>
             <div className="overflow-x-auto rounded-xl border border-hairline bg-card">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-ink-muted">
-                    <th className="p-3 font-medium">Date</th>
-                    <th className="p-3 font-medium">Set</th>
-                    <th className="p-3 font-medium">Weight</th>
-                    <th className="p-3 font-medium">Reps</th>
+                  <tr className="text-left">
+                    <th className="eyebrow p-3">Date</th>
+                    <th className="eyebrow p-3">Set</th>
+                    <th className="eyebrow p-3">Weight</th>
+                    <th className="eyebrow p-3">Reps</th>
                   </tr>
                 </thead>
                 <tbody>
